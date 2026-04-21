@@ -27,8 +27,9 @@ const TypewriterText = ({ text, duration }: { text: string, duration: number }) 
             {words.map((w, i) => (
                 <motion.span
                     key={`${w}-${i}`}
-                    initial={{ opacity: 0, filter: 'blur(8px)', y: 4 }}
-                    animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+                    // CPU Jitter Optimization: Removed blur() filter which is expensive on scale animations
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ 
                         duration: transitionDuration, 
                         delay: i * stagger, 
@@ -242,9 +243,10 @@ export function Player({ scenes, extinctionYear, channelName, onComplete }: { sc
                    <motion.div 
                       key="note-box"
                       className="absolute z-50 w-full max-w-4xl left-1/2 -translate-x-1/2 bottom-[14%] px-6 lg:px-0"
-                      initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
-                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                      exit={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+                      // Performance fix: Switched from CSS filter 'blur' to purely opacity/transform to ensure 60fps
+                      initial={{ opacity: 0, y: 40 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 30 }}
                       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} // Super smooth cubic bezier
                    >
                        {/* Connection Laser Line (rising from the box) */}
@@ -323,9 +325,9 @@ export function Player({ scenes, extinctionYear, channelName, onComplete }: { sc
                          <AnimatePresence>
                              {phase.type === 'outro' && (
                                  <motion.div 
-                                     initial={{ opacity: 0, filter: 'blur(5px)' }}
-                                     animate={{ opacity: 1, filter: 'blur(0px)' }}
-                                     exit={{ opacity: 0, filter: 'blur(10px)', scale: 1.1 }}
+                                     initial={{ opacity: 0 }}
+                                     animate={{ opacity: 1 }}
+                                     exit={{ opacity: 0, scale: 1.1 }}
                                      transition={{ duration: 2 }}
                                      className="absolute"
                                  >
