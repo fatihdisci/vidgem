@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Augmented Image",
+  "description": "Create interactive video presentations from images with zoom and text.",
+  "requestFramePermissions": [
+    "display-capture"
+  ],
+  "majorCapabilities": []
+}
