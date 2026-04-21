@@ -36,8 +36,6 @@ export default function App() {
 
   const executeRecording = async () => {
     try {
-      await document.documentElement.requestFullscreen();
-      
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           displaySurface: 'browser',
@@ -49,6 +47,8 @@ export default function App() {
         preferCurrentTab: true,
         audio: false, 
       });
+
+      await document.documentElement.requestFullscreen();
 
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=h264') 
          ? 'video/webm;codecs=h264' 
@@ -64,7 +64,7 @@ export default function App() {
       recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
       
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/mp4' }); 
+        const blob = new Blob(chunks, { type: mimeType }); 
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';

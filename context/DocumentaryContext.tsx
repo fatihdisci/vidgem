@@ -9,8 +9,8 @@ interface DocumentaryContextType {
     channelName: string;
     setActiveSceneId: (id: string | null) => void;
     setActiveNoteId: (id: string | null) => void;
-    setExtinctionYear: (year: string) => void;
-    setChannelName: (name: string) => void;
+    handleSetExtinctionYear: (year: string) => void;
+    handleSetChannelName: (name: string) => void;
     handleFiles: (files: FileList) => void;
     deleteScene: (id: string) => void;
     addNoteToActiveScene: (x: number, y: number) => void;
@@ -18,8 +18,8 @@ interface DocumentaryContextType {
     updateNoteDuration: (id: string, duration: number) => void;
     deleteNote: (id: string) => void;
     autoCalculateDuration: (note: Note) => void;
+    reorderScenes: (fromId: string, toId: string) => void;
     activeScene: Scene | undefined;
-    activeNote: Note | undefined;
 }
 
 const DocumentaryContext = createContext<DocumentaryContextType | undefined>(undefined);
@@ -30,12 +30,25 @@ export function DocumentaryProvider({ children }: { children: React.ReactNode })
     const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
 
     // Global Config
-    const [extinctionYear, setExtinctionYear] = useState("1936");
-    const [channelName, setChannelName] = useState("WILD ARCHIVES");
+    const [extinctionYear, setExtinctionYear] = useState(
+        () => localStorage.getItem('doc_extinctionYear') ?? "1936"
+    );
+    const [channelName, setChannelName] = useState(
+        () => localStorage.getItem('doc_channelName') ?? "WILD ARCHIVES"
+    );
+
+    const handleSetExtinctionYear = useCallback((year: string) => {
+        localStorage.setItem('doc_extinctionYear', year);
+        setExtinctionYear(year);
+    }, []);
+
+    const handleSetChannelName = useCallback((name: string) => {
+        localStorage.setItem('doc_channelName', name);
+        setChannelName(name);
+    }, []);
 
     // Memoize the active entities
     const activeScene = useMemo(() => scenes.find(s => s.id === activeSceneId), [scenes, activeSceneId]);
-    const activeNote = useMemo(() => activeScene?.notes.find(n => n.id === activeNoteId), [activeScene, activeNoteId]);
 
     const handleFiles = useCallback((files: FileList) => {
         const newScenes = Array.from(files).map(file => ({
@@ -71,7 +84,7 @@ export function DocumentaryProvider({ children }: { children: React.ReactNode })
         
         const newNote: Note = {
             id: Math.random().toString(36).substring(2, 9),
-            text: "Canlı hakkında çarpıcı bir bilgi girin. (Örn: Bu tür, en son 1936 yılında vahşi doğada gözlemlenmiştir...)",
+            text: "Enter a striking fact about this species. (e.g. This species was last observed in the wild in 1936...)",
             x, y,
             duration: 5
         };
@@ -99,6 +112,18 @@ export function DocumentaryProvider({ children }: { children: React.ReactNode })
         if (activeNoteId === id) setActiveNoteId(null);
     }, [activeNoteId]);
 
+    const reorderScenes = useCallback((fromId: string, toId: string) => {
+        setScenes(prev => {
+            const from = prev.findIndex(s => s.id === fromId);
+            const to = prev.findIndex(s => s.id === toId);
+            if (from === -1 || to === -1) return prev;
+            const newArr = [...prev];
+            const [moved] = newArr.splice(from, 1);
+            newArr.splice(to, 0, moved);
+            return newArr;
+        });
+    }, []);
+
     const autoCalculateDuration = useCallback((note: Note) => {
         const words = note.text.split(" ").length;
         const calc = Math.max(3, Math.ceil(words * 0.45)); // Fast reading speed assumption
@@ -107,13 +132,13 @@ export function DocumentaryProvider({ children }: { children: React.ReactNode })
 
     const value = useMemo(() => ({
         scenes, activeSceneId, activeNoteId, extinctionYear, channelName,
-        setActiveSceneId, setActiveNoteId, setExtinctionYear, setChannelName,
-        handleFiles, deleteScene, addNoteToActiveScene, updateNoteText, updateNoteDuration, deleteNote, autoCalculateDuration,
-        activeScene, activeNote
+        setActiveSceneId, setActiveNoteId, handleSetExtinctionYear, handleSetChannelName,
+        handleFiles, deleteScene, addNoteToActiveScene, updateNoteText, updateNoteDuration, deleteNote, autoCalculateDuration, reorderScenes,
+        activeScene
     }), [
         scenes, activeSceneId, activeNoteId, extinctionYear, channelName, 
-        activeScene, activeNote, handleFiles, deleteScene, addNoteToActiveScene, 
-        updateNoteText, updateNoteDuration, deleteNote, autoCalculateDuration
+        activeScene, handleFiles, deleteScene, addNoteToActiveScene, 
+        updateNoteText, updateNoteDuration, deleteNote, autoCalculateDuration, reorderScenes
     ]);
 
     return (

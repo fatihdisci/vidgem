@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDocumentary } from '../context/DocumentaryContext';
 import { Upload, Trash2 } from 'lucide-react';
 
@@ -8,12 +8,15 @@ export const LeftSidebar = React.memo(() => {
         activeSceneId, 
         setActiveSceneId, 
         extinctionYear, 
-        setExtinctionYear, 
+        handleSetExtinctionYear, 
         channelName, 
-        setChannelName, 
+        handleSetChannelName, 
         handleFiles, 
-        deleteScene 
+        deleteScene,
+        reorderScenes
     } = useDocumentary();
+
+    const [draggedId, setDraggedId] = useState<string | null>(null);
 
     const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -31,7 +34,7 @@ export const LeftSidebar = React.memo(() => {
                    <input 
                       type="text" 
                       value={extinctionYear} 
-                      onChange={e => setExtinctionYear(e.target.value)} 
+                      onChange={e => handleSetExtinctionYear(e.target.value)} 
                       className="w-full bg-zinc-950 border border-rose-900/30 rounded-md px-2 py-1.5 text-sm text-red-500 font-bold focus:outline-none focus:border-red-500 text-center" 
                       placeholder="Örn: 1936" 
                    />
@@ -41,7 +44,7 @@ export const LeftSidebar = React.memo(() => {
                    <input 
                       type="text" 
                       value={channelName} 
-                      onChange={e => setChannelName(e.target.value)} 
+                      onChange={e => handleSetChannelName(e.target.value)} 
                       className="w-full bg-zinc-950 border border-white/10 rounded-md px-2 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500 text-center uppercase" 
                       placeholder="Örn: WILD ARCHIVES" 
                    />
@@ -59,6 +62,16 @@ export const LeftSidebar = React.memo(() => {
                     key={scene.id} 
                     className={`group relative rounded-xl border-2 overflow-hidden bg-black cursor-pointer transition-all aspect-video ${activeSceneId === scene.id ? 'border-amber-500 scale-105 shadow-xl' : 'border-transparent opacity-60 hover:opacity-100'}`}
                     onClick={() => setActiveSceneId(scene.id)}
+                    draggable
+                    onDragStart={() => setDraggedId(scene.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                        if (!draggedId || draggedId === scene.id) return;
+                        reorderScenes(draggedId, scene.id);
+                        setDraggedId(null);
+                    }}
+                    onDragEnd={() => setDraggedId(null)}
+                    style={{ opacity: draggedId === scene.id ? 0.4 : 1, transition: 'opacity 0.2s' }}
                  >
                     <img src={scene.imageUrl} className="w-full h-full object-cover" alt={`Scene ${idx+1}`} />
                     <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm px-2 rounded-md font-mono text-xs shadow">{idx + 1}</div>
