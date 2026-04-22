@@ -40,9 +40,9 @@ export default function App() {
         video: {
           displaySurface: 'browser',
           frameRate: { ideal: 60, max: 60 },
-          // Pushed limits to 4K resolution bounds based on user request (Lossless/Maximum capacity)
-          width: { ideal: 3840, max: 3840 }, 
-          height: { ideal: 2160, max: 2160 }
+          // Sweet spot: 1440p (2K) for high sharpness without the heavy stutter of 4K
+          width: { ideal: 2560, max: 2560 }, 
+          height: { ideal: 1440, max: 1440 }
         },
         preferCurrentTab: true,
         audio: false, 
@@ -54,10 +54,10 @@ export default function App() {
          ? 'video/webm;codecs=h264' 
          : (MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm');
 
-      // Supercharged Bitrate: 40 Mbps for 4K pristine quality, virtually lossless
+      // Optimized Bitrate: 25 Mbps for crystal clear 1440p
       const recorder = new MediaRecorder(stream, { 
         mimeType,
-        videoBitsPerSecond: 40 * 1024 * 1024 
+        videoBitsPerSecond: 25 * 1024 * 1024 
       });
 
       const chunks: Blob[] = [];

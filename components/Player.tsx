@@ -179,6 +179,10 @@ export function Player({ scenes, extinctionYear, channelName, onComplete }: { sc
                             exit={{ opacity: 0 }}
                             transition={{ duration: 1.5, ease: "easeInOut" }}
                             className="absolute inset-0 m-auto w-full h-full object-cover" 
+                            style={{ 
+                                // Adds a subtle "HD punch" - deepens blacks, pops colors, feels sharper
+                                filter: "contrast(1.08) saturate(1.15) brightness(0.95)"
+                            }}
                         />
                     )}
                  </AnimatePresence>
